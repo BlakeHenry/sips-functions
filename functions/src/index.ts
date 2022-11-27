@@ -5,11 +5,6 @@ admin.initializeApp();
 // // Start writing functions
 // // https://firebase.google.com/docs/functions/typescript
 //
-export const helloDad = functions.https.onRequest((request, response) => {
-    console.log("Said hello to dad");
-    response.send("Hello dad. This is google cloud functions. I'll use " +
-        "them to update the average score for reviews in the app I'm making");
-});
 
 const reviewsTable = "reviews";
 const reviewableTable = "reviewables";
@@ -29,7 +24,7 @@ interface Review {
 //     recommendedPercentage: number;
 // }
 
-export const createReview = functions.firestore.document("reviews/{reviewId}")
+export const onReviewCreation = functions.firestore.document("reviews/{reviewId}")
     .onCreate(async (snapshot, context) => {
     const reviewAdded = snapshot.data() as Review;
 
