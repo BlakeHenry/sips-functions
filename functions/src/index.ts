@@ -10,11 +10,11 @@ const reviewsTable = "reviews";
 const reviewableTable = "reviewables";
 
 interface Review {
-    Id: string;
+    createdOn: Date;
     userId: string;
     reviewableId: string;
-    recommended: boolean;
-    description: string;
+    recommend: boolean;
+    details: string;
 }
 
 // interface Reviewable {
@@ -24,8 +24,7 @@ interface Review {
 //     recommendedPercentage: number;
 // }
 
-export const onReviewCreation = functions.firestore.document("reviews/{reviewId}")
-    .onCreate(async (snapshot, context) => {
+export const onReviewCreation = functions.firestore.document("reviews/{reviewId}").onCreate(async (snapshot, context) => {
     const reviewAdded = snapshot.data() as Review;
 
     functions.logger.log(context.timestamp + "Added a review with ID: " + snapshot.id);
@@ -38,20 +37,22 @@ export const onReviewCreation = functions.firestore.document("reviews/{reviewId}
     reviewDocs.forEach((doc) => {
         const review = doc.data() as Review;
 
-        if (review.recommended === true) {
+        if (review.recommend === true) {
             recommendations += 1;
         }
-        });
+    });
     const totalReviews = reviewDocs.size;
-    const newRecommendedPercentage= Math.trunc((recommendations / totalReviews) * 100);
-    
+    const newRecommendPercentage= Math.trunc((recommendations / totalReviews) * 100);
+    console.log("Total Reviews: " + totalReviews);
+    console.log("Total Recommends: " + recommendations);
+
     // Update the reviewables recommended percentage.
     // We could optimize this more by tracking review count + old average recommend %
     // (totalReviewCount * recPercentage) + newReviewRec / totalReviewCount
     await admin.firestore().collection(reviewableTable).doc(reviewAdded.reviewableId)
-        .update({"recommendedPercentage": newRecommendedPercentage});
+        .update({"recommendedPercentage": newRecommendPercentage});
 
-    console.log("Set reviewable:" + reviewAdded.reviewableId + "recommended percentage to:" + newRecommendedPercentage);
+    console.log("Set reviewable:" + reviewAdded.reviewableId + "recommend percentage to:" + newRecommendPercentage);
 
     return null;
 });
